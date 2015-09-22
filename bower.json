@@ -1,0 +1,16 @@
+{
+  "name": "harmony",
+  "version": "0.0.1",
+  "homepage": "https://github.com/mokhachat/harmony",
+  "authors": [
+    "mokhachat"
+  ],
+  "description": "ai demo",
+  "dependencies": {
+    "bacon": "~0.7.71",
+    "jquery": "~2.1.4",
+    "lodash": "~3.10.1",
+    "stats.js": "*"
+  },
+  "license": "MIT"
+}
