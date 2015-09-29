@@ -1,7 +1,12 @@
 class View
   constructor: ->
     @canvas = document.getElementById 'view'
+    @backcanvas = document.createElement 'canvas'
+    @backcanvas.style.visibility = 'hidden'
+
     @ctx = @canvas.getContext '2d'
+    @backctx = @backcanvas.getContext '2d'
+    
     @update()
     
     $(window).resize =>
@@ -22,13 +27,17 @@ class View
     @viewSize = Math.min width, height
     @canvas.width = @viewSize
     @canvas.height = @viewSize
+    @backcanvas.width = @viewSize
+    @backcanvas.height = @viewSize
 
   render: (updater)->
     #@stats.begin()
-    @ctx.clearRect 0, 0, @canvas.width, @canvas.height
-    @ctx.fillStyle = "black"
-    @ctx.fillRect 0, 0, @viewSize, @viewSize
-    updater @ctx
+    @backctx.clearRect 0, 0, @backcanvas.width, @backcanvas.height
+    @backctx.fillStyle = "black"
+    @backctx.fillRect 0, 0, @viewSize, @viewSize
+    @backctx.fill()
+    updater @backctx, @viewSize
+    @ctx.drawImage @backcanvas, 0, 0
     #@stats.end()
 
 

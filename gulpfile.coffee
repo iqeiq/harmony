@@ -18,7 +18,7 @@ opts = assign {}, watchify.args,
   entries: ['./src/main.coffee']
   extensions: ['.coffee', '.js']
   debug: true
-  transform: ['coffeeify']
+  transform: ['coffeeify', 'brfs']
 
 b = watchify browserify opts
 
