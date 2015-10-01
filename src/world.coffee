@@ -84,8 +84,13 @@ class World
     ctx.fill()
     ctx.stroke()
     ###
-    ctx.strokeStyle = 'rgb(128, 128, 128)'
-    ctx.fillStyle = 'rgb(128, 128, 128)'
+
+    #ctx.save()
+    #ctx.globalCompositeOperation = 'lighter'
+    #ctx.globalAlpha = 0.8
+
+    ctx.strokeStyle = 'rgb(0, 255, 128)'
+    #ctx.fillStyle = 'rgb(128, 128, 128)'
     for v, i in @dismap
       x = i % @size
       y = i / @size | 0
@@ -100,9 +105,10 @@ class World
       continue unless p.length is 2
       ctx.moveTo (p[0].x + 0.5) * @gridSize, (p[0].y + 0.5) * @gridSize
       ctx.lineTo (p[1].x + 0.5) * @gridSize, (p[1].y + 0.5) * @gridSize
-    ctx.fill()
+      #ctx.fill()
     ctx.stroke()
-    
+
+    #ctx.restore()
 
   drawUnit: (ctx, unit)->
     ctx.strokeStyle = 'rgb(0, 255, 255)'

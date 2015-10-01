@@ -8,7 +8,7 @@ class Unit
       y: y
     @ang = 0
     @shotang = 0.0
-    @size = 0.5
+    @size = 0.2
     @vel = 0.0
 
   getCollider: ->
@@ -31,6 +31,8 @@ class Unit
 
   action: (actions)->
     moveflag = 0
+    aimflag = false
+    shotflag = false
     angs = [undefined, -90, 90, undefined, 180, -135, 135, 180, 0, -45, 45, 0, undefined, -90, 90, undefined]
     for act in actions
       switch act
@@ -43,14 +45,18 @@ class Unit
         when ACTION.MOVE.RIGHT
           moveflag += 8  
         when ACTION.ATTACK.AIM
-          @ang = @ang #TODO:
+          aimflag = true
+          shotflag = true
         when ACTION.ATTACK.FOWARD
-          1 # TODO:
+          shotflag = true
     if angs[moveflag]?
       @ang = angs[moveflag]
-      @vel = 0.1
+      @vel = if aimflag then 0.04 else 0.07
     else
       @vel = 0
+
+    if shotflag
+      0 #TODO
 
   update: ()->
     @action @brain.update(@)
