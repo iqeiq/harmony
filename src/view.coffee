@@ -6,7 +6,7 @@ class View
 
     @ctx = @canvas.getContext '2d'
     @backctx = @backcanvas.getContext '2d'
-       
+    
     @update()
     
     $(window).resize =>

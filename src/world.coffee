@@ -72,43 +72,38 @@ class World
       ctx.stroke()
 
   drawField: (ctx)->
-    ###
-    ctx.strokeStyle = 'rgb(128, 128, 128)'
-    for v, i in @field
-      x = i % @size
-      y = i / @size | 0
-      switch v
-        when 1
-          ctx.fillStyle = 'rgb(128, 128, 128)'
-          ctx.rect x * @gridSize, y * @gridSize, @gridSize, @gridSize
-    ctx.fill()
-    ctx.stroke()
-    ###
+    
+    draw = (type, color)=>
+      ctx.strokeStyle = color
+      ctx.beginPath()
 
-    #ctx.save()
-    #ctx.globalCompositeOperation = 'lighter'
-    #ctx.globalAlpha = 0.8
+      for v, i in @dismap
+        x = i % @size
+        y = i / @size | 0
+        continue if x > @size - 2
+        break if y > @size - 2 
+        d = [@dismap[i], @dismap[i + 1], @dismap[i + @size], @dismap[i + @size + 1]]
+        f = [@field[i], @field[i + 1], @field[i + @size], @field[i + @size + 1]]
+      
+        continue unless f.some((v)-> v is type)
+      
+        p = []
+        p.push {x: x + 0.5, y: y} if d[0] * d[1] < 0
+        p.push {x: x, y: y + 0.5} if d[0] * d[2] < 0
+        p.push {x: x + 1.0, y: y + 0.5} if d[1] * d[3] < 0
+        p.push {x: x + 0.5, y: y + 1.0} if d[2] * d[3] < 0
+        continue unless p.length is 2
+      
+        ctx.moveTo (p[0].x + 0.5) * @gridSize, (p[0].y + 0.5) * @gridSize
+        ctx.lineTo (p[1].x + 0.5) * @gridSize, (p[1].y + 0.5) * @gridSize
 
-    ctx.strokeStyle = 'rgb(0, 255, 128)'
-    #ctx.fillStyle = 'rgb(128, 128, 128)'
-    for v, i in @dismap
-      x = i % @size
-      y = i / @size | 0
-      continue if x > @size - 2
-      break if y > @size - 2 
-      d = [@dismap[i], @dismap[i + 1], @dismap[i + @size], @dismap[i + @size + 1]]
-      p = []
-      p.push {x: x + 0.5, y: y} if d[0] * d[1] < 0
-      p.push {x: x, y: y + 0.5} if d[0] * d[2] < 0
-      p.push {x: x + 1.0, y: y + 0.5} if d[1] * d[3] < 0
-      p.push {x: x + 0.5, y: y + 1.0} if d[2] * d[3] < 0
-      continue unless p.length is 2
-      ctx.moveTo (p[0].x + 0.5) * @gridSize, (p[0].y + 0.5) * @gridSize
-      ctx.lineTo (p[1].x + 0.5) * @gridSize, (p[1].y + 0.5) * @gridSize
-      #ctx.fill()
-    ctx.stroke()
+      ctx.stroke()
 
-    #ctx.restore()
+    draw 1, 'rgb(0, 255, 128)'
+    draw 2, 'rgb(255, 128, 0)'
+    draw 3, 'rgb(255, 48, 0)'
+    draw 4, 'rgb(0, 160, 255)'
+    draw 5, 'rgb(0, 92, 255)'
 
   drawUnit: (ctx, unit)->
     ctx.strokeStyle = 'rgb(0, 255, 255)'
