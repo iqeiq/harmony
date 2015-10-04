@@ -6,12 +6,10 @@ World = require './World'
 class Main 
   constructor: ->
     @view = new View
-    @world = new World
+    @world = new World @view.container, @view.size
     
   loop: ->
-    requestAnimationFrame => do @loop
-    @world.update()
-    @view.render @world.render
-
+    requestAnimationFrame => @loop()
+    @view.render => @world.update()
 
 $ -> do new Main().loop

@@ -70,14 +70,14 @@ class Input
         @offMouseUp v
         @offMouseMove v
       @offDoubleClick()
-      @off k for own k, v of @listener
+      @listener = {}
         
 
   on: (key, cb)->
     return @listener[key].push cb if @listener[key]
     @listener[key] = [cb]
 
-  off: (key, cb = allremove)->
+  off: (key, cb)->
     _.remove @listener[key], (v)-> v is cb
 
 

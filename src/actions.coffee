@@ -1,9 +1,10 @@
 module.exports = 
+  IDOL: 0
   MOVE:
-    TOP:    0
-    BOTTOM: 1
-    LEFT:   2
-    RIGHT:  3
+    TOP:    1
+    BOTTOM: 2
+    LEFT:   3
+    RIGHT:  4
   ATTACK:
-    AIM:    7
-    FOWARD: 8
+    AIM:    5
+    FOWARD: 6

@@ -1,11 +1,8 @@
-TYPE = require './types'
 ACTION = require './actions'
 
 class Unit 
-  constructor: (x, y, @type, @brain)->
-    @pos = 
-      x: x
-      y: y
+  constructor: (@team, @brain)->
+    @pos = {x: 0, y: 0}
     @ang = 0
     @shotang = 0.0
     @size = 0.2
@@ -66,31 +63,6 @@ class Unit
     @pos.y += @vel * Math.sin rad
     @vel = @vel * 0.7
     @vel = 0.0 if @vel * @vel < 0.0001
-
-  draw: (ctx)->
-    ctx.strokeStyle = 'rgb(0, 92, 192)'
-    ctx.beginPath()
-    
-    rad = @ang * Math.PI / 180
-    p1x = @pos.x + @size * Math.cos rad
-    p1y = @pos.y + @size * Math.sin rad
-
-    rad = (@ang - 60) * Math.PI / 180
-    p2x = @pos.x + @size * Math.cos rad
-    p2y = @pos.y + @size * Math.sin rad
-
-    rad = (@ang + 60) * Math.PI / 180
-    p3x = @pos.x + @size * Math.cos rad
-    p3y = @pos.y + @size * Math.sin rad
-    
-    rad = @ang * Math.PI / 180
-    ctx.moveTo p1x, p1y
-    ctx.lineTo p2x, p2y
-    ctx.lineTo @pos.x, @pos.y
-    ctx.lineTo p3x, p3y
-    ctx.lineTo p1x, p1y
-
-    ctx.stroke()
 
 
 module.exports = Unit
