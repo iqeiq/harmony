@@ -1,12 +1,18 @@
 ACTION = require './actions'
+STATUS = require './status'
+util = require './util'
 
 class Unit 
-  constructor: (@team, @brain)->
+  constructor: (@team, @base, @brain)->
     @pos = {x: 0, y: 0}
-    @ang = 0
+    @ang = if @team % 2 then 180 else 0
     @shotang = 0.0
+    @hp = 10
     @size = 0.2
     @vel = 0.0
+    @shotInterval = 0
+    @status = STATUS.ACTIVE
+    @respawnCount = 0
 
   getCollider: ->
     colls = []
@@ -26,7 +32,7 @@ class Unit
     ###
     colls
 
-  action: (actions)->
+  action: (actions, shot)->
     moveflag = 0
     aimflag = false
     shotflag = false
@@ -52,17 +58,45 @@ class Unit
     else
       @vel = 0
 
-    if shotflag
-      0 #TODO
+    @shotang = @ang 
+    @shotInterval-- if @shotInterval > 0
 
-  update: ()->
-    @action @brain.update(@)
+    if shotflag and @shotInterval is 0
+      @shotInterval = 20
+      shot @
 
-    rad = @ang * Math.PI / 180
-    @pos.x += @vel * Math.cos rad
-    @pos.y += @vel * Math.sin rad
-    @vel = @vel * 0.7
-    @vel = 0.0 if @vel * @vel < 0.0001
+  update: (shot)->
+    switch @status
+      when STATUS.READY
+        if @respawnCount is 0
+          @status = STATUS.ACTIVE
+          @pos.x = @base.x + util.randf 1
+          @pos.y = @base.y + util.randf 1
+          @hp = 10
+          @ang = if @team % 2 then 180 else 0
+        else
+          @respawnCount--
+      when STATUS.ACTIVE
+        @action @brain.update(@), shot
+
+        rad = @ang * Math.PI / 180
+        @pos.x += @vel * Math.cos rad
+        @pos.y += @vel * Math.sin rad
+        @vel = @vel * 0.7
+        @vel = 0.0 if @vel * @vel < 0.0001
+
+       
+
+        if @hp <= 0
+          @status = STATUS.DEAD
+
+      when STATUS.DEAD
+        @pos.x = -100
+        @pos.y = -100
+        @status = STATUS.READY
+        @respawnCount = 180
+
+     @scoreboradUpdate()
 
 
 module.exports = Unit

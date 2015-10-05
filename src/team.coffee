@@ -1,12 +1,12 @@
 
 class Team
-  constructor: (@id, @base, @color, @point = 100)->
+  constructor: (@id, @base, @core, @color, @point = 100)->
     @units = []
+    @bullets = []
 
   changePoint: (diff)->
     @point += diff
     @point = Math.max 0, @point
-    @scoreborad.text = "#{@point}"
     @scoreboradUpdate()
 
   eachMembers: (f)->

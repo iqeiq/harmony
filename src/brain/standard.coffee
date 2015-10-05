@@ -17,7 +17,10 @@ class StandardBrain extends Brain
       ACTION.MOVE.LEFT, 
       ACTION.MOVE.RIGHT
     ])
-    
+
+    unless util.rand 5
+      acts.push ACTION.ATTACK.AIM
+
     return acts
 
 module.exports = StandardBrain
