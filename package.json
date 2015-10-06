@@ -1,6 +1,7 @@
 {
   "name": "harmony",
   "version": "0.0.1",
+  "main": "electron_main.js",
   "description": "harmony",
   "repository": {
     "type": "git",
@@ -13,10 +14,12 @@
   },
   "homepage": "https://github.com/mokhachat/harmony3",
   "devDependencies": {
+    "asar": "^0.8.0",
     "brfs": "^1.4.1",
     "browserify": "^11.0.1",
     "coffee-script": "^1.9.3",
     "coffeeify": "^1.1.0",
+    "electron-packager": "^5.1.0",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
     "gulp-sourcemaps": "^1.5.2",
@@ -30,6 +33,7 @@
     "watchify": "^3.3.1"
   },
   "dependencies": {
-    "brfs": "^1.4.1"
+    "brfs": "^1.4.1",
+    "electron-prebuilt": "^0.33.6"
   }
 }

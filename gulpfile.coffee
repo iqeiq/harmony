@@ -12,6 +12,24 @@ mainBowerFiles= require 'main-bower-files'
 watchify = require 'watchify'
 assign = require 'lodash.assign'
 exists = require('path-exists').sync
+packager = require 'electron-packager'
+
+gulp.task 'copy', ['bower-build', 'build'], ->
+  gulp.src ['index.html', 'electron_main.js', 'package.json', 'content/js/*.js', 'content/css/**', 'content/data/**'],
+    base: '.'
+  .pipe gulp.dest('temp')
+
+gulp.task 'pack', ['copy'], (done)->
+  packager
+    dir: 'temp'
+    out: 'build'
+    name: 'harmony'
+    arch: 'all'
+    platform: 'all'
+    version: '0.33.6'
+    overwrite: true
+    asar: true
+  , (err, path)-> done()
 
 watchify.args.fullPaths = false
 opts = assign {}, watchify.args,
@@ -62,4 +80,5 @@ gulp.task 'build', build
 b.on 'update', build
 b.on 'log', gutil.log
 
-gulp.task 'default', ['bower-build', 'build']
+gulp.task 'default', ['bower-build', 'build'], ->
+  
