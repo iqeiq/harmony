@@ -17,10 +17,15 @@ class World
     @size2 = @size * @size
     @gridSize = @viewsize / @size
 
+    @resolution = 2
+    @resolution2 = @resolution * @resolution
+    @sizer = @size * @resolution
+    @sizer2 = @sizer * @sizer
+    @gridSizer = @viewsize / @sizer
+
     @field = new Uint8Array @size2
     @dismap = new Int32Array @size2
-    @plInfmap = new Float32Array @size2
-    @enInfmap = new Float32Array @size2
+
 
     playerTeam = 1
     @team = []
@@ -42,6 +47,17 @@ class World
     @team.push new Team(0, base[0], core[0], 0xffa000)
     @team.push new Team(1, base[1], core[1], 0x00ffff)
 
+    for t, i in @team
+      t.mapsize = @size
+      t.mapresolution = @resolution
+      t.coredismap = new Int32Array @sizer2 
+      @setCoredismap t, @team[1- i].core #TODO:
+      memberNum = if playerTeam is i then 3 else 4
+      for k in [0...memberNum]
+        b = new StandardBrain t
+        u = new Unit i, t.base, b
+        @addUnit u
+
     for v, i in @dismap
       @dismap[i] = if [0, 6, 7, 8].some((v)=> @field[i] is v) then 1 else -1
 
@@ -51,14 +67,6 @@ class World
     humanBrain = new HumanBrain @input
     @player = new Unit playerTeam, @team[playerTeam].base, humanBrain
     @addUnit @player
-
-    for t, i in @team
-      memberNum = if playerTeam is i then 3 else 4
-      for k in [0...memberNum]
-        b = new StandardBrain
-        u = new Unit i, t.base, b
-        @addUnit u
-
 
     gStart = @setupStartView()
     @container.addChild gStart
@@ -106,6 +114,53 @@ class World
     @transit = (next)=> @phase = @scene[next]().bind @, @transit
 
     @transit 'init'
+
+  setCoredismap: (team, core)->
+    cdm = team.coredismap
+    queue = []
+    for k in [0, 1]
+      for i in [0, 1]
+        queue.push
+          x: core.x * @resolution + i
+          y: core.y * @resolution + k
+          v: 1
+
+    dir = []
+    for k in [-1, 0, 1]
+      for i in [-1, 0, 1]
+        continue if i is 0 and k is 0
+        dir.push [i, k]
+
+    indexify = (x, y)=>
+      rx = x * @resolution
+      ry = y * @resolution
+      res = []
+      for k in [0, 1]
+        for i in [0, 1]
+          res.push (rx + i) + (ry + k) * @sizer
+      res
+    
+    for f, i in @field
+      continue if [0, 6, 7, 8].some((u)=> f is u)
+      x = i % @size
+      y = i / @size | 0
+      for index in indexify(x, y)
+        cdm[index] = -1
+
+    while queue.length > 0
+      {x, y, v} = queue[0]
+      queue.splice 0, 1
+      for d in dir
+        index = (x + d[0]) + (y + d[1]) * @sizer
+        continue unless cdm[index] is 0
+        cdm[index] = v
+        queue.push
+          x: x + d[0]
+          y: y + d[1]
+          v: v + 1
+
+    for index in indexify(core.x, core.y)
+      cdm[index] = 0
 
 
   addUnit: (u)->
@@ -309,6 +364,17 @@ class World
 
     g.addChild g2
 
+    for t, ti in @team
+      continue unless ti is 0
+      for d, i in t.coredismap
+        continue unless d > 0
+        x = i % @sizer
+        y = i / @sizer | 0
+        tx = (x + 0.5) * @gridSizer
+        ty = (y + 0.5) * @gridSizer
+        text = @setupText tx, ty, "#{d}", '8px', 0xffffff, 'center', 'center'
+        #g.addChild text
+
     return g
 
   setupBullet: (b)->
@@ -408,7 +474,7 @@ class World
                   @team[0].changePoint -1
                 when 4
                   break if b.i.team is 1
-                  @team[0].changePoint -1
+                  @team[1].changePoint -1
 
         b.g.position.x = b.i.pos.x * @gridSize
         b.g.position.y = b.i.pos.y * @gridSize
