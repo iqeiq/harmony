@@ -41,7 +41,7 @@ app.on('ready', function() {
     });
   } else {
     mainWindow = new BrowserWindow({
-      width: 640,
+      width: 640 + 480,
       height: 640,
       'node-integration': false,
       'use-content-size': true,

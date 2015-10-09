@@ -83,6 +83,9 @@ class World
     @marker = @setupPlayerMarker @player
     @container.addChild @marker
 
+    @harmonyMarker = @setupHarmonyMarker @player
+    @container.addChild @harmonyMarker
+
     gStart = @setupStartView()
     @container.addChild gStart
 
@@ -242,7 +245,7 @@ class World
     for k in [-1, 0, 1]
       for i in [-1, 0, 1]
         continue if i is 0 and k is 0
-        dir.push [i, k]
+        dir.push [i, k]     
     
     indexify = (x, y)=>
       rx = x * @resolution
@@ -262,12 +265,13 @@ class World
         y: y
         v: 1
 
-    x = Math.ceil(team.core.x * @resolution) + util.rand(8) - 4
-    y = Math.ceil(team.core.y * @resolution) + util.rand(8) - 4
-    queue.push
-      x: x
-      y: y
-      v: 1
+    unless @getNear team.core, units, 16
+      x = Math.ceil(team.core.x * @resolution) + util.rand(8) - 4
+      y = Math.ceil(team.core.y * @resolution) + util.rand(8) - 4
+      queue.push
+        x: x
+        y: y
+        v: 1
     
     for f, i in @field
       continue if [0, 6, 7, 8].some((u)=> f is u)
@@ -283,7 +287,7 @@ class World
         index = (x + d[0]) + (y + d[1]) * @sizer
         continue unless edm[index] is 0
         edm[index] = v
-        continue if v > 20
+        continue if v > 15
         queue.push
           x: x + d[0]
           y: y + d[1]
@@ -303,7 +307,7 @@ class World
 
   addBullet: (u)->
     t = u.team
-    b = new Bullet {x: u.pos.x, y: u.pos.y}, 0.2, u.ang, 0.1, u
+    b = new Bullet {x: u.pos.x, y: u.pos.y}, 0.2, u.shotang, 0.1, u
     g = @setupBullet b
     @container.addChild g
     @team[t].bullets.push
@@ -361,12 +365,27 @@ class World
     g = new PIXI.Graphics
     size = unit.size * @gridSize * 5
 
-    g.lineStyle 2, 0xffff00
+    g.lineStyle 3, 0xffff00
       .drawRect -size, -size, size * 2, size * 2
 
-    g.alpha = 0.3
+    g.alpha = 0.4
 
     return g
+
+  setupHarmonyMarker: (unit)->
+    g = new PIXI.Graphics
+    size = unit.size * @gridSize * 5
+
+    g.lineStyle 3, 0x33ffaa
+      .drawRect -size, -size, size * 2, size * 2
+
+    g.alpha = 0.4
+
+    g.position.x = -50
+    g.position.y = -50
+
+    return g
+
 
   setupStartView: ->
     g = new PIXI.Graphics
@@ -570,6 +589,20 @@ class World
         @scoreborad.position.x = p0x + size * 1.4
         @scoreborad.position.y = p0y - size * 1.4
 
+    unit.harmonyMarkerUpdate = do =>
+      gs = @gridSize
+      (pos)=>
+        p0x = pos.x * gs
+        p0y = pos.y * gs
+        @harmonyMarker.position.x = p0x
+        @harmonyMarker.position.y = p0y
+
+    unit.harmonyMarkerRemove = do =>
+      gs = @gridSize
+      =>
+        @harmonyMarker.position.x = -50
+        @harmonyMarker.position.y = -50
+
     @container.addChild unit.scoreborad
     g.position.x = p0x
     g.position.y = p0y 
@@ -577,15 +610,28 @@ class World
 
     return g
 
-  getNear: (pos, team, limit)->
+  getNear: (pos, units, limit)->
     ang = undefined
-    for u in team.units
+    r = 100000
+    for u in units
       {x, y} = u.i.pos
       r2 = Math.pow(pos.x - x, 2) + Math.pow(pos.y - y, 2) 
-      if r2 < limit * limit
+      if 0 < r2 < limit * limit and r2 < r
         rad = Math.atan2 y - pos.y, x - pos.x
         ang = rad * 180 / Math.PI
-    ang
+        r = r2
+    return ang
+
+  getNear2: (pos, units, limit)->
+    target = undefined
+    r = 100000
+    for u in units
+      {x, y} = u.i.pos
+      r2 = Math.pow(pos.x - x, 2) + Math.pow(pos.y - y, 2) 
+      if 0 < r2 < limit * limit and r2 < r
+        target = u.i
+        r = r2
+    return target
 
   updateUnits: ->
     for t, ti in @team
@@ -595,7 +641,9 @@ class World
         u.i.update (v)=>
           @addBullet v
         , (pos, limit)=>
-          @getNear pos, @team[1 - ti], limit
+          @getNear pos, @team[1 - ti].units, limit
+        , (pos, limit)=>
+          @getNear2 pos, @team[ti].units, limit
 
         @fix u.i
 
@@ -618,8 +666,7 @@ class World
         if u.i.brain.input?
           @marker.position.x = u.i.pos.x * @gridSize
           @marker.position.y = u.i.pos.y * @gridSize
-          @marker.rotation = u.shotang * Math.PI / 180
-
+          
   updateBullets: ->
     for t in @team
       removeList = []

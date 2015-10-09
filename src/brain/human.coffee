@@ -18,6 +18,8 @@ class HumanBrain extends Brain
       acts.push ACTION.MOVE.RIGHT
     if @input.keys['left']
       acts.push ACTION.MOVE.LEFT
+    if @input.keys['x']
+      acts.push ACTION.HARMONY.MASTER
     if @input.keys['z'] and @input.keys['shift']
       acts.push ACTION.ATTACK.AIM
     else if @input.keys['z']

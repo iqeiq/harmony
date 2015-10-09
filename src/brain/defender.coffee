@@ -47,14 +47,14 @@ class DefenderBrain extends Brain
       cand = []
       for d in dir
         index = (mx + d[0]) + (my + d[1]) * @team.mapsize * @team.mapresolution
-        index2 = (mx + d[0] * 2) + (my + d[1] * 2) * @team.mapsize * @team.mapresolution
+        #index2 = (mx + d[0] * 2) + (my + d[1] * 2) * @team.mapsize * @team.mapresolution
         dis = @team.enemydismap[index]
-        dis2 = @team.enemydismap[index2]
+        #dis2 = @team.enemydismap[index2]
         continue if dis < 0
-        continue if util.rand(2) and dis2 < 0
+        #continue if util.rand(2) and dis2 < 0
         if dis is mind
           cand.push d
-        else if dis < mind and dis > 2
+        else if dis < mind and dis > 1
           cand = [d]
           mind = dis
   

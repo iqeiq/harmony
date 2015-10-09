@@ -8,3 +8,6 @@ module.exports =
   ATTACK:
     AIM:    5
     FOWARD: 6
+  HARMONY:
+    MASTER: 7
+    SLAVE:  8

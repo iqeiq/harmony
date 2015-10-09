@@ -9,6 +9,13 @@ class View
         #transparent: true
     $(document.body).append @renderer.view
 
+    img = document.createElement 'img'
+    img.src = "content/data/rule.png"
+    img.style.position = 'absolute'
+    img.style.left = '640px'
+    img.style.top = '0px'
+    $(document.body).append img
+    
     @container = new PIXI.Container
 
     @stats = new Stats

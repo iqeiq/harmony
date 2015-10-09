@@ -14,6 +14,7 @@ class Unit
     @shotInterval = 0
     @status = STATUS.ACTIVE
     @respawnCount = 0
+    @prevHarmony = undefined
 
   getCollider: ->
     colls = []
@@ -33,11 +34,15 @@ class Unit
     ###
     colls
 
-  action: (actions, shot, near)->
+  action: (actions, shot, near, near2)->
     moveflag = 0
     aimflag = false
     shotflag = false
+    harmonyflag = false
     angs = [undefined, -90, 90, undefined, 180, -135, 135, 180, 0, -45, 45, 0, undefined, -90, 90, undefined]
+    if @harmony
+      actions = @harmony.filter (v)-> v isnt ACTION.HARMONY.MASTER
+      @harmonyMarkerUpdate @pos
     for act in actions
       switch act
         when ACTION.MOVE.TOP
@@ -53,6 +58,21 @@ class Unit
           shotflag = true
         when ACTION.ATTACK.FOWARD
           shotflag = true
+        when ACTION.HARMONY.MASTER
+          harmonyflag = true
+    
+    if harmonyflag
+      if @prevHarmony
+        @prevHarmony.harmony = actions
+      else
+        target = near2 @pos, 32
+        target.harmony = actions
+        @prevHarmony = target
+    else if @prevHarmony
+      @prevHarmony.harmonyMarkerRemove()
+      @prevHarmony.harmony = null
+      @prevHarmony = undefined
+
     if angs[moveflag]?
       @ang = angs[moveflag]
       @vel = if aimflag then 0.03 else 0.06
@@ -65,11 +85,12 @@ class Unit
     if shotflag and @shotInterval is 0
       if aimflag
         a = near @pos, 5
-        @shotang = a if a
+        if a
+          @shotang = a 
       @shotInterval = 20
       shot @
 
-  update: (shot, near)->
+  update: (shot, near, near2)->
     switch @status
       when STATUS.READY
         if @respawnCount is 0
@@ -81,7 +102,7 @@ class Unit
         else
           @respawnCount--
       when STATUS.ACTIVE
-        @action @brain.update(@, near), shot, near
+        @action @brain.update(@, near), shot, near, near2
 
         rad = @ang * Math.PI / 180
         @pos.x += @vel * Math.cos rad
