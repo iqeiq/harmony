@@ -16,7 +16,7 @@ packager = require 'electron-packager'
 zip = require 'gulp-zip'
 
 gulp.task 'copy', ['bower-build', 'build'], ->
-  gulp.src ['*.html', 'electron_main.js', 'package.json', 'content/js/*.js', 'content/css/**', 'content/data/**'],
+  gulp.src ['*.html', 'electron_main.js', 'package.json', 'content/js/*.js', 'content/css/**', 'content/data/**', 'node_modules/express/**'],
     base: '.'
   .pipe gulp.dest('temp')
 
@@ -29,7 +29,7 @@ gulp.task 'pack', ['copy'], ()->
     platform: 'win32'
     version: '0.33.6'
     overwrite: true
-    asar: true
+    asar: false
   ,(err, path)->
     return console.log err if err
     gulp.src ["#{path[0]}/**", "fes/**"]

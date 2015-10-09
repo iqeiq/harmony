@@ -55,6 +55,8 @@ class World
       t.coredismap = new Int32Array @sizer2 
       t.coredirmap = new Int32Array @sizer2
       t.enemydismap = new Int32Array @sizer2
+      t.enemydismapUpdate = true
+
       @setCoredismap t, @team[1 - i].core #TODO:
       @setCoredirmap t, @team[1 - i].core
       memberNum = if playerTeam is i then 3 else 4
@@ -66,6 +68,22 @@ class World
           b = new AttackerBrain t
         u = new Unit i, t.base, b
         @addUnit u
+
+    t0 = @team[0]
+    t1 = @team[1]
+    
+    t0.worker = new Worker "./content/js/worker.js"
+    t1.worker = new Worker "./content/js/worker2.js"
+    
+    t0.worker.addEventListener 'message', (e)->
+      t0.enemydismap = e.data
+      t0.enemydismapUpdate = true
+    , false
+
+    t1.worker.addEventListener 'message', (e)->
+      t1.enemydismap = e.data
+      t1.enemydismapUpdate = true
+    , false
 
     for t, i in @team
       @setEnemydismap t, @team[1 - i].units
@@ -236,6 +254,7 @@ class World
 
 
   setEnemydismap: (team, units)->
+    return unless team.enemydismapUpdate
     for t, i in team.enemydismap
       team.enemydismap[i] = 0
 
@@ -280,6 +299,13 @@ class World
       for index in indexify(x, y)
         edm[index] = -1
 
+    team.enemydismapUpdate = false
+    team.worker.postMessage
+      map: edm
+      queue: queue
+      dir: dir
+      sizer: @sizer
+    ###
     while queue.length > 0
       {x, y, v} = queue[0]
       queue.splice 0, 1
@@ -292,6 +318,7 @@ class World
           x: x + d[0]
           y: y + d[1]
           v: v + 1
+    ###
 
   addUnit: (u)->
     t = u.team

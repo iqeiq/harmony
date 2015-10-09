@@ -2,6 +2,12 @@ var app = require('app');
 var BrowserWindow = require('browser-window');
 var fs = require('fs');
 var https = require('https');
+var express = require('express');
+var expapp = express();
+
+expapp.use(express.static(__dirname + '/'));
+
+expapp.listen(7077, function(){
 
 var mainWindow = null;
 
@@ -49,11 +55,14 @@ app.on('ready', function() {
       resizable: false,
       'auto-hide-menu-bar': true
     });
-    mainWindow.loadUrl('file://' + __dirname + '/index.html');
+    //mainWindow.loadUrl('file://' + __dirname + '/index.html');
+    mainWindow.loadUrl('http://127.0.0.1:7077');
     //mainWindow.openDevTools();
   }
 
   mainWindow.on('closed', function() {
     mainWindow = null;
   });
+});
+
 });
