@@ -31,7 +31,7 @@ class AttackerBrain extends Brain
       angs = [0, 180, 90, 270]
       ang = (unit.ang + 360) % 360
       if ang is angs[cdr - 1]
-        if util.rand(5) and near unit.pos, 5
+        if util.rand(5) is 0  and near unit.pos, 5
           acts.push ACTION.ATTACK.AIM
         else 
           acts.push ACTION.ATTACK.FOWARD
@@ -66,6 +66,8 @@ class AttackerBrain extends Brain
         switch d[1]
           when -1 then acts.push ACTION.MOVE.TOP
           when 1 then acts.push ACTION.MOVE.BOTTOM
+        if near unit.pos, 5
+          acts.push ACTION.ATTACK.AIM
       else
         acts.push util.randArray([
           ACTION.MOVE.TOP, 

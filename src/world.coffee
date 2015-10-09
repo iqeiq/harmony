@@ -58,7 +58,7 @@ class World
       @setCoredismap t, @team[1 - i].core #TODO:
       @setCoredirmap t, @team[1 - i].core
       memberNum = if playerTeam is i then 3 else 4
-      defnum = util.rand(memberNum / 2 + 1) + 1
+      defnum = if playerTeam is i then 2 else 1 + util.rand(3)
       for k in [0...memberNum]
         if k < defnum
           b = new DefenderBrain t
@@ -79,6 +79,9 @@ class World
     humanBrain = new HumanBrain @input
     @player = new Unit playerTeam, @team[playerTeam].base, humanBrain
     @addUnit @player
+
+    @marker = @setupPlayerMarker @player
+    @container.addChild @marker
 
     gStart = @setupStartView()
     @container.addChild gStart
@@ -300,7 +303,7 @@ class World
 
   addBullet: (u)->
     t = u.team
-    b = new Bullet {x: u.pos.x, y: u.pos.y}, 0.2, u.shotang, 0.1, u
+    b = new Bullet {x: u.pos.x, y: u.pos.y}, 0.2, u.ang, 0.1, u
     g = @setupBullet b
     @container.addChild g
     @team[t].bullets.push
@@ -353,6 +356,17 @@ class World
       when 'bottom'
         text.position.y = y - text.height
     return text
+
+  setupPlayerMarker: (unit)->
+    g = new PIXI.Graphics
+    size = unit.size * @gridSize * 5
+
+    g.lineStyle 2, 0xffff00
+      .drawRect -size, -size, size * 2, size * 2
+
+    g.alpha = 0.3
+
+    return g
 
   setupStartView: ->
     g = new PIXI.Graphics
@@ -559,7 +573,7 @@ class World
     @container.addChild unit.scoreborad
     g.position.x = p0x
     g.position.y = p0y 
-    g.rotation = unit.ang * Math.PI / 180
+    g.rotation = unit.shotang * Math.PI / 180
 
     return g
 
@@ -600,6 +614,11 @@ class World
         u.g.position.x = u.i.pos.x * @gridSize
         u.g.position.y = u.i.pos.y * @gridSize
         u.g.rotation = u.i.shotang * Math.PI / 180
+
+        if u.i.brain.input?
+          @marker.position.x = u.i.pos.x * @gridSize
+          @marker.position.y = u.i.pos.y * @gridSize
+          @marker.rotation = u.shotang * Math.PI / 180
 
   updateBullets: ->
     for t in @team
