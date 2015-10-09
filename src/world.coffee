@@ -8,6 +8,7 @@ Team = require './team'
 Bullet = require './bullet'
 HumanBrain = require './brain/human'
 StandardBrain = require './brain/standard'
+meta = require '../content/data/meta'
 
 
 class World
@@ -251,6 +252,9 @@ class World
 
     text3 = @setupText @viewsize / 2, @viewsize / 4, 'harmony', '56px Papyrus', 0xffffff, 'center', 'center'
     g.addChild text3
+
+    text4 = @setupText @viewsize, @viewsize, "version: #{meta.version}", '16px Papyrus', 0xffffff, 'right', 'bottom'
+    g.addChild text4
 
     return g
 

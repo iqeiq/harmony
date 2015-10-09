@@ -13,23 +13,28 @@ watchify = require 'watchify'
 assign = require 'lodash.assign'
 exists = require('path-exists').sync
 packager = require 'electron-packager'
+zip = require 'gulp-zip'
 
 gulp.task 'copy', ['bower-build', 'build'], ->
   gulp.src ['index.html', 'electron_main.js', 'package.json', 'content/js/*.js', 'content/css/**', 'content/data/**'],
     base: '.'
   .pipe gulp.dest('temp')
 
-gulp.task 'pack', ['copy'], (done)->
+gulp.task 'pack', ['copy'], ()->
   packager
     dir: 'temp'
     out: 'build'
     name: 'harmony'
-    arch: 'all'
-    platform: 'all'
+    arch: 'x64'
+    platform: 'win32'
     version: '0.33.6'
     overwrite: true
     asar: true
-  , (err, path)-> done()
+  , (err, path)->
+    gulp.src ["#{path[0]}/*", "fes/*"]
+      .pipe zip('harmony.zip')
+      .pipe gulp.dest('build')
+
 
 watchify.args.fullPaths = false
 opts = assign {}, watchify.args,

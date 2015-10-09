@@ -78,7 +78,7 @@ class Unit
           @respawnCount--
       when STATUS.ACTIVE
         @action @brain.update(@), shot
-
+        
         rad = @ang * Math.PI / 180
         @pos.x += @vel * Math.cos rad
         @pos.y += @vel * Math.sin rad
