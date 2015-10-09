@@ -16,7 +16,7 @@ packager = require 'electron-packager'
 zip = require 'gulp-zip'
 
 gulp.task 'copy', ['bower-build', 'build'], ->
-  gulp.src ['index.html', 'electron_main.js', 'package.json', 'content/js/*.js', 'content/css/**', 'content/data/**'],
+  gulp.src ['*.html', 'electron_main.js', 'package.json', 'content/js/*.js', 'content/css/**', 'content/data/**'],
     base: '.'
   .pipe gulp.dest('temp')
 
@@ -30,8 +30,9 @@ gulp.task 'pack', ['copy'], ()->
     version: '0.33.6'
     overwrite: true
     asar: true
-  , (err, path)->
-    gulp.src ["#{path[0]}/*", "fes/*"]
+  ,(err, path)->
+    return console.log err if err
+    gulp.src ["#{path[0]}/**", "fes/**"]
       .pipe zip('harmony.zip')
       .pipe gulp.dest('build')
 

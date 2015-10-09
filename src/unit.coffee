@@ -7,7 +7,8 @@ class Unit
     @pos = {x: 0, y: 0}
     @ang = if @team % 2 then 180 else 0
     @shotang = 0.0
-    @hp = 10
+    @fullhp = 5
+    @hp = @fullhp
     @size = 0.2
     @vel = 0.0
     @shotInterval = 0
@@ -32,7 +33,7 @@ class Unit
     ###
     colls
 
-  action: (actions, shot)->
+  action: (actions, shot, near)->
     moveflag = 0
     aimflag = false
     shotflag = false
@@ -54,7 +55,7 @@ class Unit
           shotflag = true
     if angs[moveflag]?
       @ang = angs[moveflag]
-      @vel = if aimflag then 0.04 else 0.07
+      @vel = if aimflag then 0.03 else 0.06
     else
       @vel = 0
 
@@ -62,23 +63,26 @@ class Unit
     @shotInterval-- if @shotInterval > 0
 
     if shotflag and @shotInterval is 0
+      if aimflag
+        a = near @pos, 5
+        @shotang = a if a
       @shotInterval = 20
       shot @
 
-  update: (shot)->
+  update: (shot, near)->
     switch @status
       when STATUS.READY
         if @respawnCount is 0
           @status = STATUS.ACTIVE
           @pos.x = @base.x + util.randf 1
           @pos.y = @base.y + util.randf 1
-          @hp = 10
+          @hp = @fullhp
           @ang = if @team % 2 then 180 else 0
         else
           @respawnCount--
       when STATUS.ACTIVE
-        @action @brain.update(@), shot
-        
+        @action @brain.update(@, near), shot, near
+
         rad = @ang * Math.PI / 180
         @pos.x += @vel * Math.cos rad
         @pos.y += @vel * Math.sin rad

@@ -7,7 +7,8 @@ Unit = require './unit'
 Team = require './team'
 Bullet = require './bullet'
 HumanBrain = require './brain/human'
-StandardBrain = require './brain/standard'
+AttackerBrain = require './brain/attacker'
+DefenderBrain = require './brain/defender'
 meta = require '../content/data/meta'
 
 
@@ -22,7 +23,7 @@ class World
     @resolution2 = @resolution * @resolution
     @sizer = @size * @resolution
     @sizer2 = @sizer * @sizer
-    @gridSizer = @viewsize / @sizer
+    @gridSizer = @viewsize / @sizerm
 
     @field = new Uint8Array @size2
     @dismap = new Int32Array @size2
@@ -52,12 +53,22 @@ class World
       t.mapsize = @size
       t.mapresolution = @resolution
       t.coredismap = new Int32Array @sizer2 
-      @setCoredismap t, @team[1- i].core #TODO:
+      t.coredirmap = new Int32Array @sizer2
+      t.enemydismap = new Int32Array @sizer2
+      @setCoredismap t, @team[1 - i].core #TODO:
+      @setCoredirmap t, @team[1 - i].core
       memberNum = if playerTeam is i then 3 else 4
+      defnum = util.rand(memberNum / 2 + 1) + 1
       for k in [0...memberNum]
-        b = new StandardBrain t
+        if k < defnum
+          b = new DefenderBrain t
+        else 
+          b = new AttackerBrain t
         u = new Unit i, t.base, b
         @addUnit u
+
+    for t, i in @team
+      @setEnemydismap t, @team[1 - i].units
 
     for v, i in @dismap
       @dismap[i] = if [0, 6, 7, 8].some((v)=> @field[i] is v) then 1 else -1
@@ -119,8 +130,8 @@ class World
   setCoredismap: (team, core)->
     cdm = team.coredismap
     queue = []
-    for k in [0, 1]
-      for i in [0, 1]
+    for k in [0...@resolution]
+      for i in [0...@resolution]
         queue.push
           x: core.x * @resolution + i
           y: core.y * @resolution + k
@@ -136,8 +147,8 @@ class World
       rx = x * @resolution
       ry = y * @resolution
       res = []
-      for k in [0, 1]
-        for i in [0, 1]
+      for k in [0...@resolution]
+        for i in [0...@resolution]
           res.push (rx + i) + (ry + k) * @sizer
       res
     
@@ -163,6 +174,117 @@ class World
     for index in indexify(core.x, core.y)
       cdm[index] = 0
 
+  setCoredirmap: (team, core)->
+    cdm = team.coredirmap
+    queue = []
+    for k in [0...@resolution]
+      queue.push
+        x: core.x * @resolution + k
+        y: core.y * @resolution
+        dir: 3
+      queue.push
+        x: core.x * @resolution + k
+        y: core.y * @resolution + @resolution - 1
+        dir: 4
+      queue.push
+        x: core.x * @resolution
+        y: core.y * @resolution + k
+        dir: 1
+      queue.push
+        x: core.x * @resolution + @resolution - 1
+        y: core.y * @resolution + k
+        dir: 2
+
+    indexify = (x, y)=>
+      rx = x * @resolution
+      ry = y * @resolution
+      res = []
+      for k in [0...@resolution]
+        for i in [0...@resolution]
+          res.push (rx + i) + (ry + k) * @sizer
+      res
+    
+    for f, i in @field
+      continue if [0, 6, 7, 8].some((u)=> f is u)
+      x = i % @size
+      y = i / @size | 0
+      for index in indexify(x, y)
+        cdm[index] = -1
+
+    while queue.length > 0
+      {x, y, dir} = queue[0]
+      queue.splice 0, 1
+      d = [0, 0]
+      d[0] = if dir < 3 then (dir - 1) * 2 - 1 else 0
+      d[1] = if dir > 2 then (dir - 3) * 2 - 1 else 0
+      index = (x + d[0]) + (y + d[1]) * @sizer
+      unless cdm[index] is -1
+        cdm[index] = dir
+        queue.push
+          x: x + d[0]
+          y: y + d[1]
+          dir: dir
+
+    for index in indexify(core.x, core.y)
+      cdm[index] = 0
+
+
+  setEnemydismap: (team, units)->
+    for t, i in team.enemydismap
+      team.enemydismap[i] = 0
+
+    edm = team.enemydismap
+    queue = []
+    dir = []
+    for k in [-1, 0, 1]
+      for i in [-1, 0, 1]
+        continue if i is 0 and k is 0
+        dir.push [i, k]
+    
+    indexify = (x, y)=>
+      rx = x * @resolution
+      ry = y * @resolution
+      res = []
+      for k in [0...@resolution]
+        for i in [0...@resolution]
+          res.push (rx + i) + (ry + k) * @sizer
+      res
+    
+    for u in units
+      x = Math.ceil(u.i.pos.x * @resolution)
+      y = Math.ceil(u.i.pos.y * @resolution) 
+      
+      queue.push
+        x: x
+        y: y
+        v: 1
+
+    x = Math.ceil(team.core.x * @resolution) + util.rand(8) - 4
+    y = Math.ceil(team.core.y * @resolution) + util.rand(8) - 4
+    queue.push
+      x: x
+      y: y
+      v: 1
+    
+    for f, i in @field
+      continue if [0, 6, 7, 8].some((u)=> f is u)
+      x = i % @size
+      y = i / @size | 0
+      for index in indexify(x, y)
+        edm[index] = -1
+
+    while queue.length > 0
+      {x, y, v} = queue[0]
+      queue.splice 0, 1
+      for d in dir
+        index = (x + d[0]) + (y + d[1]) * @sizer
+        continue unless edm[index] is 0
+        edm[index] = v
+        continue if v > 20
+        queue.push
+          x: x + d[0]
+          y: y + d[1]
+          v: v + 1
 
   addUnit: (u)->
     t = u.team
@@ -178,7 +300,7 @@ class World
 
   addBullet: (u)->
     t = u.team
-    b = new Bullet {x: u.pos.x, y: u.pos.y}, 0.1, u.shotang, 0.1, u
+    b = new Bullet {x: u.pos.x, y: u.pos.y}, 0.2, u.shotang, 0.1, u
     g = @setupBullet b
     @container.addChild g
     @team[t].bullets.push
@@ -368,16 +490,18 @@ class World
 
     g.addChild g2
 
+    ###
     for t, ti in @team
-      continue unless ti is 0
-      for d, i in t.coredismap
+      continue unless ti is 1
+      for d, i in t.enemydismap #t.coredirmap
         continue unless d > 0
         x = i % @sizer
-        y = i / @sizer | 0
+        y = (i / @sizer) | 0
         tx = (x + 0.5) * @gridSizer
         ty = (y + 0.5) * @gridSizer
         text = @setupText tx, ty, "#{d}", '8px', 0xffffff, 'center', 'center'
-        #g.addChild text
+        g.addChild text
+    ###
 
     return g
 
@@ -439,16 +563,32 @@ class World
 
     return g
 
+  getNear: (pos, team, limit)->
+    ang = undefined
+    for u in team.units
+      {x, y} = u.i.pos
+      r2 = Math.pow(pos.x - x, 2) + Math.pow(pos.y - y, 2) 
+      if r2 < limit * limit
+        rad = Math.atan2 y - pos.y, x - pos.x
+        ang = rad * 180 / Math.PI
+    ang
+
   updateUnits: ->
-    for t in @team
+    for t, ti in @team
+      unless util.rand 8
+        @setEnemydismap t, @team[1 - ti].units
       for u in t.units
-        u.i.update (v)=> @addBullet v
+        u.i.update (v)=>
+          @addBullet v
+        , (pos, limit)=>
+          @getNear pos, @team[1 - ti], limit
+
         @fix u.i
 
         for t in @team
           continue if u.i.team is t.id 
           p1 = u.i.pos
-          r1 = u.i.size / 2
+          r1 = u.i.size * 3 / 4
           for b in t.bullets
             p2 = b.i.pos
             r2 = b.i.size
@@ -459,7 +599,7 @@ class World
 
         u.g.position.x = u.i.pos.x * @gridSize
         u.g.position.y = u.i.pos.y * @gridSize
-        u.g.rotation = u.i.ang * Math.PI / 180
+        u.g.rotation = u.i.shotang * Math.PI / 180
 
   updateBullets: ->
     for t in @team

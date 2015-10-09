@@ -5,10 +5,17 @@ class Bullet
     @r = 0
     
   getCollider: ->
+    rad45 = Math.PI * 45 / 180
     colls = []
     colls.push
       x: @pos.x # + @size * Math.cos @rad
       y: @pos.y # + @size * Math.sin @rad
+    colls.push
+      x: @pos.x + @size * Math.cos (@rad + rad45)
+      y: @pos.y + @size * Math.sin (@rad + rad45)
+    colls.push
+      x: @pos.x + @size * Math.cos (@rad - rad45)
+      y: @pos.y + @size * Math.sin (@rad - rad45)
     colls
 
   update: ->
