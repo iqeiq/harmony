@@ -1,6 +1,6 @@
 # harmony
 
-:sushi: http://mokhachat.github.io/harmony :sushi:
+:sushi: http://iqeiq.github.io/harmony :sushi:
 
 ## License
 MIT
